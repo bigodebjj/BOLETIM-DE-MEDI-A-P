@@ -7,16 +7,17 @@ interface ConfigPanelProps {
 }
 
 function ConfigPanel({ showToast }: ConfigPanelProps) {
-  const [configs, setConfigs] = useState<ConfigItem[]>([])
   const [driveId, setDriveId] = useState('')
+  const [driveUploadUrl, setDriveUploadUrl] = useState('')
   const [adminEmail, setAdminEmail] = useState('')
 
   useEffect(() => {
     configService.list().then(items => {
-      setConfigs(items)
-      const drive = items.find(i => i.chave === 'DRIVE_ROOT_FOLDER_ID')
-      const email = items.find(i => i.chave === 'ADMIN_EMAIL')
+      const drive = items.find((i: ConfigItem) => i.chave === 'DRIVE_ROOT_FOLDER_ID')
+      const url = items.find((i: ConfigItem) => i.chave === 'DRIVE_UPLOAD_URL')
+      const email = items.find((i: ConfigItem) => i.chave === 'ADMIN_EMAIL')
       if (drive) setDriveId(drive.valor)
+      if (url) setDriveUploadUrl(url.valor)
       if (email) setAdminEmail(email.valor)
     })
   }, [])
@@ -25,6 +26,7 @@ function ConfigPanel({ showToast }: ConfigPanelProps) {
     try {
       await configService.save([
         { chave: 'DRIVE_ROOT_FOLDER_ID', valor: driveId },
+        { chave: 'DRIVE_UPLOAD_URL', valor: driveUploadUrl },
         { chave: 'ADMIN_EMAIL', valor: adminEmail }
       ])
       showToast('Configurações salvas!', 'success')
@@ -37,12 +39,25 @@ function ConfigPanel({ showToast }: ConfigPanelProps) {
     <div className="card">
       <div className="card-header"><i className="fas fa-sliders"></i> Configurações do App</div>
       <div className="form-grid">
-        <div className="form-group">
-          <label><i className="fab fa-google-drive"></i>ID Pasta Raiz Drive</label>
-          <input className="form-control" value={driveId}
-            onChange={e => setDriveId(e.target.value)} placeholder="Google Folder ID" />
+        <div className="form-group full-width">
+          <label><i className="fas fa-link"></i>URL do Apps Script (Google Drive)</label>
+          <input className="form-control" value={driveUploadUrl}
+            onChange={e => setDriveUploadUrl(e.target.value)}
+            placeholder="https://script.google.com/macros/s/SEU_ID/exec" />
+          <small style={{ color: 'var(--gray)', fontSize: '0.75rem', marginTop: 4, display: 'block' }}>
+            Cole aqui a URL do Google Apps Script que você criou para upload no Drive
+          </small>
         </div>
-        <div className="form-group">
+        <div className="form-group full-width">
+          <label><i className="fab fa-google-drive"></i>ID da Pasta Raiz no Google Drive</label>
+          <input className="form-control" value={driveId}
+            onChange={e => setDriveId(e.target.value)}
+            placeholder="Ex: 1aBcDeFgHiJkLmNoPqRsTuVwXyZ" />
+          <small style={{ color: 'var(--gray)', fontSize: '0.75rem', marginTop: 4, display: 'block' }}>
+            O ID está na URL da pasta: drive.google.com/drive/folders/<b>AQUI_ESTA_O_ID</b>
+          </small>
+        </div>
+        <div className="form-group full-width">
           <label><i className="fas fa-envelope"></i>E-mail Admin</label>
           <input className="form-control" value={adminEmail}
             onChange={e => setAdminEmail(e.target.value)} placeholder="admin@email.com" />
