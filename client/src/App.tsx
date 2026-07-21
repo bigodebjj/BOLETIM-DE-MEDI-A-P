@@ -1,9 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Dashboard from './components/Dashboard'
 import DocumentForm from './components/DocumentForm'
 import DocumentList from './components/DocumentList'
 import ConfigPanel from './components/ConfigPanel'
+import Login from './components/Login'
 import Toast from './components/Toast'
+import { onAuthChange, logout, User } from './firebase'
 import type { TabName } from './types'
 import './App.css'
 
@@ -15,11 +17,40 @@ const TAB_INFO: Record<TabName, { label: string; icon: string; topLabel: string;
 }
 
 function App() {
+  const [user, setUser] = useState<User | null>(null)
+  const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<TabName>('dashboard')
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null)
 
+  useEffect(() => {
+    const unsubscribe = onAuthChange((u) => {
+      setUser(u)
+      setLoading(false)
+    })
+    return () => unsubscribe()
+  }, [])
+
   const showToast = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
     setToast({ message, type })
+  }
+
+  const handleLogout = async () => {
+    await logout()
+  }
+
+  if (loading) {
+    return (
+      <div className="login-page">
+        <div className="loading">
+          <div className="spinner"></div>
+          <p>Carregando...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!user) {
+    return <Login onLogin={() => {}} />
   }
 
   const tabs: { name: TabName; label: string; icon: string }[] = [
@@ -52,8 +83,13 @@ function App() {
         </nav>
 
         <div className="sidebar-footer">
-          <div className="dot"></div>
-          <span>Sistema Online</span>
+          <div className="user-info">
+            <i className="fas fa-user-circle"></i>
+            <span className="user-email">{user.email}</span>
+          </div>
+          <button className="btn-logout" onClick={handleLogout} title="Sair">
+            <i className="fas fa-right-from-bracket"></i>
+          </button>
         </div>
       </aside>
 
