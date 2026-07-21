@@ -8,13 +8,11 @@ import {
   User
 } from 'firebase/auth';
 import {
-  getFirestore,
-  Firestore,
-  collection,
-  getDocs,
-  query,
-  where
-} from 'firebase/firestore';
+  getStorage,
+  ref,
+  uploadBytes,
+  getDownloadURL
+} from 'firebase/storage';
 
 const firebaseConfig = {
   apiKey: 'AIzaSyDkdz6vqiWheza_ZM2kobaXCv5szCjsGqM',
@@ -27,7 +25,6 @@ const firebaseConfig = {
 
 let app: FirebaseApp;
 let auth: Auth;
-let db: Firestore;
 
 function getFirebaseApp(): FirebaseApp {
   if (!app) app = initializeApp(firebaseConfig);
@@ -37,11 +34,6 @@ function getFirebaseApp(): FirebaseApp {
 function getFirebaseAuth(): Auth {
   if (!auth) auth = getAuth(getFirebaseApp());
   return auth;
-}
-
-function getFirebaseDb(): Firestore {
-  if (!db) db = getFirestore(getFirebaseApp());
-  return db;
 }
 
 export function login(email: string, password: string) {
@@ -56,66 +48,16 @@ export function onAuthChange(callback: (user: User | null) => void) {
   return onAuthStateChanged(getFirebaseAuth(), callback);
 }
 
-export async function getDriveUploadUrl(): Promise<string | null> {
-  const database = getFirebaseDb();
-  const q = query(collection(database, 'config'), where('__name__', '==', 'DRIVE_UPLOAD_URL'));
-  const snapshot = await getDocs(q);
-  if (snapshot.empty) return null;
-  return snapshot.docs[0].data().valor || null;
-}
+export async function uploadFile(file: File): Promise<{ url: string; name: string; mimeType: string; size: number }> {
+  const storage = getStorage(getFirebaseApp());
+  const timestamp = Date.now();
+  const fileName = `uploads/${timestamp}_${file.name}`;
+  const storageRef = ref(storage, fileName);
 
-export async function getDriveFolderId(): Promise<string | null> {
-  const database = getFirebaseDb();
-  const q = query(collection(database, 'config'), where('__name__', '==', 'DRIVE_ROOT_FOLDER_ID'));
-  const snapshot = await getDocs(q);
-  if (snapshot.empty) return null;
-  return snapshot.docs[0].data().valor || null;
-}
+  await uploadBytes(storageRef, file);
+  const url = await getDownloadURL(storageRef);
 
-function fileToBase64(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const base64 = (reader.result as string).split(',')[1];
-      resolve(base64);
-    };
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-}
-
-export async function uploadFileToDrive(file: File): Promise<{ url: string; name: string; mimeType: string; size: number }> {
-  const uploadUrl = await getDriveUploadUrl();
-  const folderId = await getDriveFolderId();
-
-  if (!uploadUrl || !folderId) {
-    throw new Error('Configure a URL do Apps Script e o ID da pasta do Drive nas Configurações');
-  }
-
-  const fileBase64 = await fileToBase64(file);
-
-  const response = await fetch(uploadUrl, {
-    method: 'POST',
-    body: JSON.stringify({
-      folderId: folderId,
-      fileName: file.name,
-      mimeType: file.type,
-      fileBase64: fileBase64
-    })
-  });
-
-  const result = await response.json();
-
-  if (result.error) {
-    throw new Error(result.error);
-  }
-
-  return {
-    url: result.fileUrl,
-    name: file.name,
-    mimeType: file.type,
-    size: file.size
-  };
+  return { url, name: file.name, mimeType: file.type, size: file.size };
 }
 
 export type { User };
