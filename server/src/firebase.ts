@@ -22,12 +22,12 @@ import {
 } from 'firebase/firestore';
 
 const firebaseConfig = {
-  apiKey: 'AIzaSyDkdz6vqiWheza_ZM2kobaXCv5szCjsGqM',
-  authDomain: 'medicao-73dcd.firebaseapp.com',
-  projectId: 'medicao-73dcd',
-  storageBucket: 'medicao-73dcd.firebasestorage.app',
-  messagingSenderId: '941639285481',
-  appId: '1:941639285481:web:5515c9e56921859cd48e78'
+  apiKey: process.env.FIREBASE_API_KEY || 'AIzaSyDkdz6vqiWheza_ZM2kobaXCv5szCjsGqM',
+  authDomain: process.env.FIREBASE_AUTH_DOMAIN || 'medicao-73dcd.firebaseapp.com',
+  projectId: process.env.FIREBASE_PROJECT_ID || 'medicao-73dcd',
+  storageBucket: process.env.FIREBASE_STORAGE_BUCKET || 'medicao-73dcd.firebasestorage.app',
+  messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID || '941639285481',
+  appId: process.env.FIREBASE_APP_ID || '1:941639285481:web:5515c9e56921859cd48e78'
 };
 
 let db: Firestore;
