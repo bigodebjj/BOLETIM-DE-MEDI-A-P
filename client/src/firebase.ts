@@ -62,6 +62,16 @@ async function getConfigValue(key: string): Promise<string> {
   return docSnap.exists() ? docSnap.data().valor : '';
 }
 
+function cleanDriveFolderId(input: string): string {
+  let id = input.trim();
+  if (id.includes('drive.google.com')) {
+    const match = id.match(/\/folders\/([a-zA-Z0-9_-]+)/);
+    if (match) id = match[1];
+  }
+  id = id.split('?')[0];
+  return id;
+}
+
 function fileToBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -76,7 +86,8 @@ function fileToBase64(file: File): Promise<string> {
 
 export async function uploadFileToDrive(file: File): Promise<{ url: string; name: string; mimeType: string; size: number }> {
   const uploadUrl = await getConfigValue('DRIVE_UPLOAD_URL');
-  const folderId = await getConfigValue('DRIVE_ROOT_FOLDER_ID');
+  const folderIdRaw = await getConfigValue('DRIVE_ROOT_FOLDER_ID');
+  const folderId = cleanDriveFolderId(folderIdRaw);
 
   if (!uploadUrl) {
     throw new Error('Configure a URL do Google Apps Script nas Configurações');
