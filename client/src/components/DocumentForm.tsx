@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { uploadFile } from '../firebase'
+import { uploadFileToDrive } from '../firebase'
 import { documentService, categoriasService } from '../services/api'
 import type { Categoria, Subcategoria } from '../types'
 
@@ -35,7 +35,8 @@ function DocumentForm({ showToast, onSaved }: DocumentFormProps) {
     try {
       let uploadResult: { url: string; name: string; mimeType: string } | null = null
       if (file) {
-        uploadResult = await uploadFile(file)
+        showToast('Enviando arquivo para o Google Drive...', 'info')
+        uploadResult = await uploadFileToDrive(file)
       }
 
       await documentService.create({
