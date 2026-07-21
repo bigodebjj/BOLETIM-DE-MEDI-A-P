@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { login, register } from '../firebase'
+import { login } from '../firebase'
 
 interface LoginProps {
   onLogin: () => void
@@ -8,7 +8,6 @@ interface LoginProps {
 function Login({ onLogin }: LoginProps) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [isRegister, setIsRegister] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -18,19 +17,13 @@ function Login({ onLogin }: LoginProps) {
     setError('')
 
     try {
-      if (isRegister) {
-        await register(email, password)
-      } else {
-        await login(email, password)
-      }
+      await login(email, password)
       onLogin()
     } catch (err: any) {
       const errorMessages: Record<string, string> = {
         'auth/invalid-credential': 'Email ou senha inválidos',
         'auth/user-not-found': 'Usuário não encontrado',
         'auth/wrong-password': 'Senha incorreta',
-        'auth/email-already-in-use': 'Email já cadastrado',
-        'auth/weak-password': 'Senha deve ter pelo menos 6 caracteres',
         'auth/invalid-email': 'Email inválido',
         'auth/too-many-requests': 'Muitas tentativas. Tente novamente mais tarde',
       }
@@ -80,26 +73,17 @@ function Login({ onLogin }: LoginProps) {
               value={password}
               onChange={e => setPassword(e.target.value)}
               required
-              minLength={6}
             />
           </div>
 
           <button type="submit" className="btn btn-primary login-btn" disabled={loading}>
             {loading ? (
-              <><i className="fas fa-spinner fa-spin"></i> {isRegister ? 'Cadastrando...' : 'Entrando...'}</>
+              <><i className="fas fa-spinner fa-spin"></i> Entrando...</>
             ) : (
-              <><i className="fas fa-right-to-bracket"></i> {isRegister ? 'Cadastrar' : 'Entrar'}</>
+              <><i className="fas fa-right-to-bracket"></i> Entrar</>
             )}
           </button>
         </form>
-
-        <div className="login-footer">
-          {isRegister ? (
-            <span>Já tem conta? <button onClick={() => { setIsRegister(false); setError('') }}>Entrar</button></span>
-          ) : (
-            <span>Não tem conta? <button onClick={() => { setIsRegister(true); setError('') }}>Cadastrar</button></span>
-          )}
-        </div>
       </div>
     </div>
   )
