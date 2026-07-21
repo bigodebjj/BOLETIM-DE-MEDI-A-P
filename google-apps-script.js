@@ -9,6 +9,14 @@
  * 6. Copie a URL gerada e cole nas Configurações do sistema
  */
 
+function doOptions(e) {
+  return ContentService.createTextOutput('')
+    .setMimeType(ContentService.MimeType.TEXT)
+    .setHeader('Access-Control-Allow-Origin', '*')
+    .setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
+    .setHeader('Access-Control-Allow-Headers', 'Content-Type');
+}
+
 function doPost(e) {
   try {
     const data = JSON.parse(e.postData.contents);
@@ -20,7 +28,8 @@ function doPost(e) {
     if (!folderId || !fileName || !fileBase64) {
       return ContentService.createTextOutput(
         JSON.stringify({ error: 'Parâmetros obrigatórios ausentes' })
-      ).setMimeType(ContentService.MimeType.JSON);
+      ).setMimeType(ContentService.MimeType.JSON)
+       .setHeader('Access-Control-Allow-Origin', '*');
     }
 
     const folder = DriveApp.getFolderById(folderId);
@@ -40,15 +49,19 @@ function doPost(e) {
       fileUrl: fileUrl,
       downloadUrl: downloadUrl,
       fileName: fileName
-    })).setMimeType(ContentService.MimeType.JSON);
+    })).setMimeType(ContentService.MimeType.JSON)
+      .setHeader('Access-Control-Allow-Origin', '*');
 
   } catch (err) {
     return ContentService.createTextOutput(
       JSON.stringify({ error: err.message })
-    ).setMimeType(ContentService.MimeType.JSON);
+    ).setMimeType(ContentService.MimeType.JSON)
+     .setHeader('Access-Control-Allow-Origin', '*');
   }
 }
 
 function doGet(e) {
-  return ContentService.createTextOutput('Google Apps Script - Upload de Arquivos Ativo').setMimeType(ContentService.MimeType.TEXT);
+  return ContentService.createTextOutput('Google Apps Script - Upload de Arquivos Ativo')
+    .setMimeType(ContentService.MimeType.TEXT)
+    .setHeader('Access-Control-Allow-Origin', '*');
 }
