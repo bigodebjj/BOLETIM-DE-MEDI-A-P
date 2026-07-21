@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { Documento, DashboardData, ConfigItem, UploadResult } from '../types';
+import type { Documento, DashboardData, ConfigItem } from '../types';
 
 const http = axios.create({ baseURL: '/api' });
 
@@ -29,14 +29,6 @@ export const configService = {
 
   save: (items: { chave: string; valor: string }[]) =>
     http.put('/config', items),
-};
-
-export const uploadService = {
-  upload: (file: File) => {
-    const formData = new FormData();
-    formData.append('file', file);
-    return http.post<UploadResult>('/upload', formData).then(r => r.data);
-  }
 };
 
 export const categoriasService = {

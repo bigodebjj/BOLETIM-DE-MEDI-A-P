@@ -3,11 +3,16 @@ import {
   getAuth,
   Auth,
   signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
   User
 } from 'firebase/auth';
+import {
+  getStorage,
+  ref,
+  uploadBytes,
+  getDownloadURL
+} from 'firebase/storage';
 
 const firebaseConfig = {
   apiKey: 'AIzaSyDkdz6vqiWheza_ZM2kobaXCv5szCjsGqM',
@@ -22,25 +27,17 @@ let app: FirebaseApp;
 let auth: Auth;
 
 function getFirebaseApp(): FirebaseApp {
-  if (!app) {
-    app = initializeApp(firebaseConfig);
-  }
+  if (!app) app = initializeApp(firebaseConfig);
   return app;
 }
 
 function getFirebaseAuth(): Auth {
-  if (!auth) {
-    auth = getAuth(getFirebaseApp());
-  }
+  if (!auth) auth = getAuth(getFirebaseApp());
   return auth;
 }
 
 export function login(email: string, password: string) {
   return signInWithEmailAndPassword(getFirebaseAuth(), email, password);
-}
-
-export function register(email: string, password: string) {
-  return createUserWithEmailAndPassword(getFirebaseAuth(), email, password);
 }
 
 export function logout() {
@@ -51,14 +48,16 @@ export function onAuthChange(callback: (user: User | null) => void) {
   return onAuthStateChanged(getFirebaseAuth(), callback);
 }
 
-export function getCurrentUser(): User | null {
-  return getFirebaseAuth().currentUser;
-}
+export async function uploadFile(file: File): Promise<{ url: string; name: string; mimeType: string; size: number }> {
+  const storage = getStorage(getFirebaseApp());
+  const timestamp = Date.now();
+  const fileName = `uploads/${timestamp}_${file.name}`;
+  const storageRef = ref(storage, fileName);
 
-export async function getIdToken(): Promise<string | null> {
-  const user = getFirebaseAuth().currentUser;
-  if (!user) return null;
-  return user.getIdToken();
+  await uploadBytes(storageRef, file);
+  const url = await getDownloadURL(storageRef);
+
+  return { url, name: file.name, mimeType: file.type, size: file.size };
 }
 
 export type { User };

@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
-import { documentService, uploadService, categoriasService } from '../services/api'
-import type { Categoria, Subcategoria, UploadResult } from '../types'
+import { uploadFile } from '../firebase'
+import { documentService, categoriasService } from '../services/api'
+import type { Categoria, Subcategoria } from '../types'
 
 interface DocumentFormProps {
   showToast: (msg: string, type: 'success' | 'error' | 'info') => void
@@ -32,9 +33,9 @@ function DocumentForm({ showToast, onSaved }: DocumentFormProps) {
     const fd = new FormData(form)
 
     try {
-      let uploadResult: UploadResult | null = null
+      let uploadResult: { url: string; name: string; mimeType: string } | null = null
       if (file) {
-        uploadResult = await uploadService.upload(file)
+        uploadResult = await uploadFile(file)
       }
 
       await documentService.create({
