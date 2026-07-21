@@ -101,6 +101,7 @@ export async function uploadFileToDrive(file: File): Promise<{ url: string; name
 
   const response = await fetch(uploadUrl, {
     method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       folderId: folderId,
       fileName: file.name,
@@ -109,7 +110,12 @@ export async function uploadFileToDrive(file: File): Promise<{ url: string; name
     })
   });
 
-  const result = await response.json();
+  let result;
+  try {
+    result = await response.json();
+  } catch {
+    throw new Error('Resposta invalida do servidor (status: ' + response.status + ')');
+  }
 
   if (result.error) {
     throw new Error(result.error);
